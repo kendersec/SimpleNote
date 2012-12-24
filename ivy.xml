@@ -1,0 +1,9 @@
+<ivy-module version="2.0">
+    <info organisation="org.apache" module="SimpleNote"/>
+    <dependencies>
+        <dependency org="com.google.code.gson" name="gson"
+                    rev="2.2.2"/>
+        <dependency org="org.apache.httpcomponents" name="httpclient"
+                    rev="4.2.1"/>
+    </dependencies>
+</ivy-module>
