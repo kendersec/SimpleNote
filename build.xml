@@ -2,6 +2,7 @@
          basedir="." default="dist">
 
   <property name="src" location="src"/>
+  <property name="samples"  location="samples"/>
   <property name="build" location="bin"/>
   <property name="dist" location="dist"/>
   <property name="lib" location="lib"/>
@@ -32,12 +33,25 @@
          basedir="${build}"/>
   </target>
 
+  <target name="samples" depends="dist">
+    <javac srcdir="${samples}" destdir="${samples}">
+      <classpath path="deps">
+        <fileset dir="${dist}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
   <!-- target: clean -->
   <target name="clean" description="--> clean up" >
       <!-- Delete the ${build} and ${dist} directory trees -->
       <delete dir="${build}"/>
       <delete dir="${dist}"/>
       <delete dir="${lib}"/>
+      <delete>
+        <fileset dir="${samples}" includes="**/*.class"/>
+      </delete>
    </target>
     
     <!-- target: resolve -->

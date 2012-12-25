@@ -5,8 +5,8 @@ import java.io.UnsupportedEncodingException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -21,8 +21,12 @@ public class Util {
      */
     public static StringEntity encode64(String input) throws ConnectionFailed {
         Base64 enconder = new Base64();
+        return toEntity(new String(enconder.encode(input.getBytes())));
+    }
+    
+    public static StringEntity toEntity(String input) throws ConnectionFailed {
         try {
-            return new StringEntity(new String(enconder.encode(input.getBytes())));
+            return new StringEntity(input);
         } catch (UnsupportedEncodingException e) {
             throw new ConnectionFailed("Encoding exception on Base64 conversion.");
         }
@@ -35,7 +39,7 @@ public class Util {
             HttpResponse response = client.execute(request);
             
             int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != 400) {
+            if (statusCode != HttpStatus.SC_OK) {
                 throw new ConnectionFailed("Status code: " + statusCode);
             }
             
