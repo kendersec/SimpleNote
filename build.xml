@@ -3,6 +3,7 @@
 
   <property name="src" location="src"/>
   <property name="samples"  location="samples"/>
+  <property name="doc" location="doc"/>
   <property name="build" location="bin"/>
   <property name="dist" location="dist"/>
   <property name="lib" location="lib"/>
@@ -11,13 +12,11 @@
     <include name="**/*.jar"/>
   </fileset>
 
-  <target name="init" depends="resolve">
-    <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${build}"/>
-  </target>
+  <target name="init" depends="resolve"/>
 
   <target name="compile" depends="init"
         description="--> compile the source " >
+    <mkdir dir="build"/>
     <!-- Compile the java code from ${src} into ${build} -->
     <javac srcdir="${src}" destdir="${build}">
       <classpath path="deps" />
@@ -33,7 +32,7 @@
          basedir="${build}"/>
   </target>
 
-  <target name="samples" depends="dist">
+  <target name="samples" depends="dist" description="--> compiling samples">
     <javac srcdir="${samples}" destdir="${samples}">
       <classpath path="deps">
         <fileset dir="${dist}">
@@ -43,12 +42,18 @@
     </javac>
   </target>
 
+  <target name="doc" description="--> generating documentation">
+    <mkdir dir="${doc}"/>
+    <javadoc sourcepath="${src}" destdir="${doc}"/>
+  </target>
+
   <!-- target: clean -->
-  <target name="clean" description="--> clean up" >
+  <target name="clean" description="--> clean up">
       <!-- Delete the ${build} and ${dist} directory trees -->
       <delete dir="${build}"/>
       <delete dir="${dist}"/>
       <delete dir="${lib}"/>
+      <delete dir="${doc}"/>
       <delete>
         <fileset dir="${samples}" includes="**/*.class"/>
       </delete>

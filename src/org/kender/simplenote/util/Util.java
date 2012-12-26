@@ -13,10 +13,19 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.kender.simplenote.exceptions.ConnectionFailed;
 
+/**
+ * Compound of static methods for common tasks
+ * 
+ * @author David Martínez
+ *
+ */
 public class Util {
 
     /**
-     * Encode the string into base64
+     * Encode the string into base64 and make a {@link StringEntity}
+     * 
+     * @param input string to encode
+     * @return
      * @throws ConnectionFailed 
      */
     public static StringEntity encode64(String input) throws ConnectionFailed {
@@ -24,6 +33,13 @@ public class Util {
         return toEntity(new String(enconder.encode(input.getBytes())));
     }
     
+    /**
+     * Make a {@link StringEntity} from a string
+     * 
+     * @param input string to convert
+     * @return
+     * @throws ConnectionFailed
+     */
     public static StringEntity toEntity(String input) throws ConnectionFailed {
         try {
             return new StringEntity(input);
@@ -32,6 +48,13 @@ public class Util {
         }
     }
     
+    /**
+     * Wrapper method to execute a {@link HttpUriRequest}
+     * 
+     * @param request normally it is a HttpGet, HttpPost or HttpDelete
+     * @return content of the response
+     * @throws ConnectionFailed
+     */
     public static String executeResquest(HttpUriRequest request) throws ConnectionFailed {
         HttpClient client = new DefaultHttpClient();
         
