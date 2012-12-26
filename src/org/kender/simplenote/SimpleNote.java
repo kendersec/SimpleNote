@@ -1,5 +1,7 @@
 package org.kender.simplenote;
 
+import java.util.ArrayList;
+
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -17,10 +19,13 @@ import com.google.gson.Gson;
  */
 public class SimpleNote {
     
+    public static final int MAX_FETCH_NOTES = 20;
+    public static final int MAX_FETCH_TAGS = 100;
+    
     private static final String AUTH_URL = "https://simple-note.appspot.com/api/login";
     private static final String DATA_URL = "https://simple-note.appspot.com/api2/data";
     private static final String INDEX_URL = "https://simple-note.appspot.com/api2/index";
-    private static final int MAX_FETCH_NOTES = 20;
+    private static final String TAGS_URL = "https://simple-note.appspot.com/api2/tags";
     
     private String mEmail;
     private String mPassword;
@@ -140,11 +145,12 @@ public class SimpleNote {
      * 
      * Limited to {@value #MAX_FETCH_NOTES} notes. Use {@link #getNoteList(int)} to change this.
      * 
+     * @poram withContent Add the content of the notes on the response or not
      * @return
      * @throws ConnectionFailed
      */
-    public SNote[] getNoteList() throws ConnectionFailed {
-        return getNoteList(MAX_FETCH_NOTES);
+    public SNote[] getNoteList(boolean withContent) throws ConnectionFailed {
+        return getNoteList(MAX_FETCH_NOTES, withContent);
     }
     
     /**
@@ -154,15 +160,69 @@ public class SimpleNote {
      * @return
      * @throws ConnectionFailed
      */
-    public SNote[] getNoteList(int limit) throws ConnectionFailed {
-        String params = "?auth=" + getToken() + "&email=" + mEmail + "&length=" + limit;
-        HttpGet request = new HttpGet(INDEX_URL + params);
+    public SNote[] getNoteList(int limit, boolean withContent) throws ConnectionFailed {
+        String params = "?auth=" + getToken() + "&email=" + mEmail + "&content=" + withContent;
+        HttpGet request = new HttpGet(INDEX_URL + params + "&length=" + limit);
         
         String contents = Util.executeResquest(request);
         
         SNoteIndex index = new Gson().fromJson(contents, SNoteIndex.class);
+        ArrayList<SNote> notes = index.getNotes();
         
-        return index.getNotes();
+        while (index.getMark() != null && notes.size() < limit) {
+            if ((limit - notes.size()) < MAX_FETCH_NOTES) {
+                request = new HttpGet(INDEX_URL + params + "&length=" + (limit - notes.size()));
+            } else {
+                request = new HttpGet(INDEX_URL + params + "&length=" + MAX_FETCH_NOTES);
+            }
+            contents = Util.executeResquest(request);
+            index = new Gson().fromJson(contents, SNoteIndex.class);
+            notes.addAll(index.getNotes());
+        }
+        
+        return notes.toArray(new SNote[0]);
+    }
+    
+    /**
+     * Get all the tags.
+     * 
+     * Limited to {@value #MAX_FETCH_TAGS} notes. Use {@link #getTags(int)} to change this.
+     * 
+     * @return
+     * @throws ConnectionFailed
+     */
+    public STag[] getTags() throws ConnectionFailed {
+        return getTags(MAX_FETCH_TAGS);
+    }
+    
+    /**
+     * Get all the tags
+     * 
+     * @param limit maximum number of tags to fetch
+     * @return
+     * @throws ConnectionFailed
+     */
+    public STag[] getTags(int limit) throws ConnectionFailed {
+        String params = "?auth=" + getToken() + "&email=" + mEmail;
+        HttpGet request = new HttpGet(TAGS_URL + params + "&length=" + limit);
+        
+        String contents = Util.executeResquest(request);
+        
+        TagIndex tagIndex = new Gson().fromJson(contents, TagIndex.class);
+        ArrayList<STag> tags = tagIndex.getTags();
+        
+        while (tagIndex.getMark() != null && tags.size() < limit) {
+            if ((limit - tags.size()) < MAX_FETCH_TAGS) {
+                request = new HttpGet(INDEX_URL + params + "&length=" + (limit - tags.size()));
+            } else {
+                request = new HttpGet(INDEX_URL + params + "&length=" + MAX_FETCH_TAGS);
+            }
+            contents = Util.executeResquest(request);
+            tagIndex = new Gson().fromJson(contents, TagIndex.class);
+            tags.addAll(tagIndex.getTags());
+        }
+        
+        return tags.toArray(new STag[0]);
     }
     
     /*
@@ -186,10 +246,36 @@ public class SimpleNote {
      * is requested.
      */
     private final static class SNoteIndex {
-        private SNote[] data;
+        private ArrayList<SNote> data;
+        // When the response is too long we might need to make another request
+        // with this mark as a parameter to continue fetching objects
+        private String mark;
         
-        public SNote[] getNotes() {
+        public ArrayList<SNote> getNotes() {
             return data;
+        }
+        
+        public String getMark() {
+            return mark;
+        }
+    }
+    
+    /**
+     * Pojo class to read the JSON response when the tags
+     * are requested.
+     */
+    private final static class TagIndex {
+        private ArrayList<STag> tags;
+        // When the response is too long we might need to make another request
+        // with this mark as a parameter to continue fetching objects
+        private String mark;
+        
+        public ArrayList<STag> getTags() {
+            return tags;
+        }
+        
+        public String getMark() {
+            return mark;
         }
     }
 }

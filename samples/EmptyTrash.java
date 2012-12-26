@@ -16,7 +16,7 @@ public class EmptyTrash {
         SimpleNote sn = new SimpleNote(email, password);
         
         try {
-            SNote[] notes = sn.getNoteList(20);
+            SNote[] notes = sn.getNoteList(false);
             for (SNote note: notes) {
                 if (note.inTrash()) {
                     sn.deleteNote(note);
