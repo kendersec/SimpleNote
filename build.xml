@@ -47,6 +47,13 @@
     <javadoc sourcepath="${src}" destdir="${doc}"/>
   </target>
 
+  <target name="pushdoc" depends="doc"
+          description="--> pushing new Javadoc">
+    <exec executable="/bin/bash"> 
+        <arg value="tools/publish-doc.sh"/> 
+    </exec>
+  </target>
+
   <!-- target: clean -->
   <target name="clean" description="--> clean up">
       <!-- Delete the ${build} and ${dist} directory trees -->
