@@ -25,3 +25,4 @@ git push origin gh-pages || exit $?
 
 # Switch back to the old branch
 git checkout $OLD_BRANCH || exit $?
+rm -rf javadoc/

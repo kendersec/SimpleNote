@@ -1,6 +1,6 @@
 # SimpleNote
 
-It's a [SimpleNote](www.simplenoteapp.com) API Java wrapper.
+It's a [SimpleNote](http://www.simplenoteapp.com) [API](http://kendersec.github.com/SimpleNote/SimpleNote-API-v2.1.3.pdf) Java wrapper.
 
 ## Dependencies
 
@@ -20,3 +20,7 @@ Other commands are also available:
       ant samples - to compile the samples
       ant dist - to create the jar
       ant doc - generates the documentation
+
+## Documentation
+
+The Javadoc documentation for the library is available [here](http://kendersec.github.com/SimpleNote/javadoc/)
