@@ -86,8 +86,15 @@ public class SimpleNote {
     /**
      * Update the note
      * 
-     * @param note object with (presumably) some values updated
+     * @param note object with (presumably) some values updated.
      * @return the new note object
+     * 
+     * If no changes have been made by other clients since the
+     * last update, then content will not be included in the response
+     * note object. If there have been other changes then content will
+     * be returned and the client should update their local store
+     * accordingly.
+     * 
      * @throws ConnectionFailed
      */
     public SNote updateNote(SNote note) throws ConnectionFailed {
@@ -105,8 +112,6 @@ public class SimpleNote {
         String contents = Util.executeResquest(request);
         SNote modifiedNote = new Gson().fromJson(contents, SNote.class);
         
-        // SimpleNote doesn't set the content of the new note, so we set it ourselves
-        modifiedNote.setContent(note.getContent());
         return modifiedNote;
     }
     
@@ -138,6 +143,18 @@ public class SimpleNote {
         HttpDelete request = new HttpDelete(DATA_URL + params);
         
         Util.executeResquest(request); // Empty response, not interesting
+    }
+    
+    /**
+     * Obtain the list of notes (this includes the notes in the trash) without content.
+     * 
+     * Limited to {@value #MAX_FETCH_NOTES} notes. Use {@link #getNoteList(int, boolean)} to change this.
+     * 
+     * @return
+     * @throws ConnectionFailed
+     */
+    public SNote[] getNoteList() throws ConnectionFailed {
+        return getNoteList(MAX_FETCH_NOTES, false);
     }
     
     /**
@@ -183,6 +200,92 @@ public class SimpleNote {
         return notes.toArray(new SNote[0]);
     }
     
+    /*------------------------------------
+     * Tags operations
+     -------------------------------------*/
+    
+    /**
+     * Get tag info from name
+     * 
+     * @param tagName
+     * @return
+     * @throws ConnectionFailed
+     */
+    public STag getTag(String tagName) throws ConnectionFailed {
+        String params = "/" + tagName + "?auth=" + getToken() +"&email=" + mEmail;
+        HttpGet request = new HttpGet(TAGS_URL + params);
+        
+        String contents = Util.executeResquest(request);
+        
+        return new Gson().fromJson(contents, STag.class);
+    }
+    
+    /**
+     * Add a new tag
+     * 
+     * This can also be done by adding the tag to the note
+     * 
+     * @param tag new tag name
+     */
+    public STag addTag(String tagName) throws ConnectionFailed {
+        STag dummyTag = new STag();
+        dummyTag.setName(tagName);
+        
+        return updateTag(dummyTag);
+    }
+    
+    /**
+     * Update the tag. Only the case of the tag or the index can be changed
+     * 
+     * @param tag object
+     * @return the new tag object
+     * 
+     * @throws ConnectionFailed
+     */
+    public STag updateTag(STag tag) throws ConnectionFailed {
+        String params;
+        if (tag.getVersion() != -1) { //Existing tag
+            params = "/" + tag.getName() + "?auth=" + getToken() +"&email=" + mEmail;
+        } else { //New tag
+            params = "?auth=" + getToken() +"&email=" + mEmail;
+        }
+        
+        HttpPost request = new HttpPost(TAGS_URL + params);
+        String tagDump = new Gson().toJson(tag);
+        request.setEntity(Util.toEntity(tagDump));
+        
+        String contents = Util.executeResquest(request);
+        STag modifiedTag = new Gson().fromJson(contents, STag.class);
+        
+        return modifiedTag;
+    }
+    
+    /**
+     * Delete a tag. Will not currently remove the tag from notes that still have this tag
+     * 
+     * @param tag tag object
+     * @throws ConnectionFailed
+     */
+    public STag deleteTag(STag tag) throws ConnectionFailed {
+        return deleteTag(tag.getName());
+    }
+    
+    /**
+     * Delete a tag. Will not currently remove the tag from notes that still have this tag
+     * 
+     * @param tagName name of the tag to delete
+     * @throws ConnectionFailed
+     */
+    public STag deleteTag(String tagName) throws ConnectionFailed {
+        String params = "/" + tagName + "?auth=" + getToken() + "&email=" + mEmail;
+        HttpDelete request = new HttpDelete(TAGS_URL + params);
+        
+        String contents = Util.executeResquest(request);
+        STag deletedTag = new Gson().fromJson(contents, STag.class);
+        
+        return deletedTag;
+    }
+    
     /**
      * Get all the tags.
      * 
@@ -225,9 +328,9 @@ public class SimpleNote {
         return tags.toArray(new STag[0]);
     }
     
-    /*
+    /*-----------------------------------------------------
      * Private members and private static nested classes
-     */
+     ------------------------------------------------------*/
     
     /**
      * Method to get simplenote auth token

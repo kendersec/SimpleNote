@@ -18,6 +18,8 @@ public class SNote {
     private int syncnum; //integer, number set by server, track note changes
     private int version; //integer, number set by server, track note content changes
     private int minversion; //integer, number set by server, minimum version available for note
+    private String sharekey; //string, shared note identifier, set by server
+    private String publishkey; //string, published note identifier, set by server
     private String[] systemtags; //Array of strings, some set by server
     private String[] tags; //Array of strings
     private String content; //string, data content
@@ -73,6 +75,13 @@ public class SNote {
     }
     
     /**
+     * Note creation date
+     */
+    public void setCreationDate(Date createDate) {
+        this.createdate = String.format("%d", createDate.getTime() / 1000);
+    }
+    
+    /**
      * Number set by server, track note changes
      */
     public int getSyncNum() {
@@ -91,6 +100,20 @@ public class SNote {
      */
     public int getMinversion() {
         return minversion;
+    }
+    
+    /**
+     * Shared note identifier
+     */
+    public String getShareKey() {
+        return sharekey;
+    }
+    
+    /**
+     * Published note identifier
+     */
+    public String getPublishKey() {
+        return publishkey;
     }
     
     /**
@@ -118,8 +141,14 @@ public class SNote {
     
     /**
      * Set the list of tags the note belongs to
+     * @param tags the tags shouldn't contain spaces or commas
+     * if they do, they will be trimmed
      */
     public void setTags(String[] tags) {
+        // No commas or spaces on the tags
+        for (String tag: tags) {
+            tag = tag.replaceAll(",", "").replaceAll(" ", "");
+        }
         this.tags = tags;
     }
     
