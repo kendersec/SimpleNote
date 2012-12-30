@@ -19,7 +19,7 @@ public class STag {
     private int index;
     private int version = -1; //set only by the server
     private String name;
-    private String[] share;
+    private String[] share = new String[] {};
     
     /**
      * Get the position where the tag should appear in the list
@@ -62,7 +62,7 @@ public class STag {
     public void setName(String name) {
         // Only allow new notes and case changes
         if (this.name == null ||
-                (name.toLowerCase() == this.name.toLowerCase())) {
+                (name.toLowerCase().equals(this.name.toLowerCase()))) {
             this.name = name;
         }
     }
